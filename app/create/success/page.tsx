@@ -1,27 +1,32 @@
 'use client';
 
-// --- BARIS AJAIB PENYELAMAT ERROR ---
-// Ini memaksa Next.js untuk tidak render halaman ini saat build,
-// tapi rendernya nanti saat user benar-benar membukanya.
+// --- BARIS AJAIB INI SOLUSINYA ---
 export const dynamic = 'force-dynamic'; 
+// ---------------------------------
 
 import { useSearchParams } from 'next/navigation';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { 
-  CheckCircle2, Download, Home, ArrowRight, Share2, Copy 
+  CheckCircle2, Download, Home, ArrowRight, Copy 
 } from 'lucide-react';
 
-export default function SuccessPage() {
+// Kita bungkus konten utama dalam component terpisah
+function SuccessContent() {
   const searchParams = useSearchParams();
-  const code = searchParams.get('code'); // Ambil kode unik dari URL
+  const code = searchParams.get('code');
   const [copied, setCopied] = useState(false);
 
-  // Jika tidak ada code, redirect atau tampilkan pesan (opsional)
+  // Mencegah error hydration jika code belum load
+  const [isClient, setIsClient] = useState(false);
+  useEffect(() => { setIsClient(true) }, []);
+
+  if (!isClient) return null; 
+
   if (!code) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-slate-50 text-slate-500 text-sm">
-        Memuat data...
+        <div className="animate-pulse">Memuat data QR...</div>
       </div>
     );
   }
@@ -52,29 +57,19 @@ export default function SuccessPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans">
-      
-      <div className="bg-white max-w-md w-full rounded-3xl shadow-xl border border-slate-100 overflow-hidden relative">
-        
-        {/* Confetti Decoration (CSS Only) */}
+    <div className="bg-white max-w-md w-full rounded-3xl shadow-xl border border-slate-100 overflow-hidden relative">
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500"></div>
-
         <div className="p-8 text-center">
-          
-          {/* Icon Sukses */}
           <div className="w-16 h-16 bg-green-50 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
             <CheckCircle2 size={32} />
           </div>
-
           <h1 className="text-2xl font-black text-slate-900 mb-2">Berhasil Dibuat!</h1>
           <p className="text-xs text-slate-500 mb-8">QR Code Anda sudah aktif dan siap digunakan.</p>
-
-          {/* QR Code Preview */}
+          
           <div className="bg-slate-50 p-6 rounded-2xl border border-slate-200 mb-6 inline-block">
              <img src={qrUrl} alt="QR Code" className="w-40 h-40 mix-blend-multiply" />
           </div>
 
-          {/* Short Link Box */}
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 flex items-center justify-between mb-6 gap-3">
              <div className="text-xs text-slate-600 truncate font-medium flex-1 text-left pl-1">
                {shortLink}
@@ -87,7 +82,6 @@ export default function SuccessPage() {
              </button>
           </div>
 
-          {/* Action Buttons */}
           <div className="space-y-3">
              <button 
                onClick={handleDownload}
@@ -95,7 +89,6 @@ export default function SuccessPage() {
              >
                 <Download size={18} /> Download PNG
              </button>
-
              <div className="grid grid-cols-2 gap-3">
                <Link href="/" className="flex items-center justify-center gap-2 bg-slate-100 hover:bg-slate-200 text-slate-600 py-3 rounded-xl font-bold text-xs transition-all">
                   <Home size={16} /> Beranda
@@ -105,9 +98,18 @@ export default function SuccessPage() {
                </Link>
              </div>
           </div>
-
         </div>
-      </div>
+    </div>
+  );
+}
+
+// Component Utama dengan Suspense agar aman saat Build
+export default function SuccessPage() {
+  return (
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center p-6 font-sans">
+      <Suspense fallback={<div className="text-slate-400 text-sm">Loading...</div>}>
+        <SuccessContent />
+      </Suspense>
     </div>
   );
 }
