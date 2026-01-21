@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 
-// --- DATA GAMBAR PREVIEW ---
+// --- DATA GAMBAR PREVIEWNYA ---
 const previewImages: Record<string, string> = {
   website: 'https://placehold.co/280x480/3b82f6/white?text=Preview+Website',
   vcard: 'https://placehold.co/280x480/4f46e5/white?text=Preview+VCard',
